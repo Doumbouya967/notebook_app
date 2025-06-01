@@ -1,7 +1,16 @@
-// pages/dashboard.tsx
-import { useAuth } from "../context/AuthContext";
-import { useRouter } from "next/router";
+ "use client";
+
+import { useAuth } from "../../context/AuthContext";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import  SignOut  from "../../components/signout";
+
+
+
+
+
+
+
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -17,6 +26,7 @@ export default function Dashboard() {
 
   return (
     <div className="p-10">
+      <SignOut />
       <h1 className="text-xl font-bold">Bienvenue, {user.email} 👋</h1>
     </div>
   );

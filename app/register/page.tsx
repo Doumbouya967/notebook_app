@@ -1,8 +1,15 @@
 // pages/register.tsx
+
+"use client";
 import { useState } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../lib/firebase";
-import { useRouter } from "next/router";
+import { auth } from "../../lib/firebase";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import  SignOut  from "../../components/signOut.tsx";
+
+
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -20,11 +27,20 @@ export default function RegisterPage() {
 
   return (
     <div className="p-10 max-w-md mx-auto">
-      <h1 className="text-xl font-bold mb-4">Créer un compte</h1>
+
+ <div className="w-1/4 mb-4">
+         <Link href="/">
+          <Button className="w-full max-w-xs bg-gray-600 mb-20">Retour</Button>
+        </Link>
+    </div> 
+
+    <SignOut />
+
+      <h1 className="text-3xl text-center font-bold mb-4">Créer un compte</h1>
       <input
         type="email"
         placeholder="Email"
-        className="border p-2 w-full mb-2"
+        className="border p-2 w-full mb-5"
         onChange={(e) => setEmail(e.target.value)}
       />
       <input
@@ -33,7 +49,7 @@ export default function RegisterPage() {
         className="border p-2 w-full mb-2"
         onChange={(e) => setPassword(e.target.value)}
       />
-      <button onClick={handleRegister} className="bg-blue-500 text-white px-4 py-2 rounded">
+      <button onClick={handleRegister} className="bg-blue-500 mt-8 text-white px-4 py-2 rounded">
         S'inscrire
       </button>
     </div>
