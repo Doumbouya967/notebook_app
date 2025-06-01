@@ -1,13 +1,8 @@
  "use client";
-
 import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import  SignOut  from "../../components/signout";
-
-
-
-
+import SignOut_app from "../../components/Signout_app";
 
 
 
@@ -26,7 +21,15 @@ export default function Dashboard() {
 
   return (
     <div className="p-10">
-      <SignOut />
+     
+
+      <div className="w-full flex justify-end mb-4">
+        <div className="w-1/4 mb-4">
+         <SignOut_app />
+      </div>
+    </div>
+
+
       <h1 className="text-xl font-bold">Bienvenue, {user.email} 👋</h1>
     </div>
   );

@@ -7,7 +7,6 @@ import { auth } from "../../lib/firebase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import  SignOut  from "../../components/signOut.tsx";
 
 
 
@@ -34,7 +33,6 @@ export default function RegisterPage() {
         </Link>
     </div> 
 
-    <SignOut />
 
       <h1 className="text-3xl text-center font-bold mb-4">Créer un compte</h1>
       <input
