@@ -7,6 +7,8 @@ import { auth } from "../../lib/firebase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner"; // ✅ nouveau hook
+
 
 
 
@@ -16,11 +18,18 @@ export default function RegisterPage() {
   const router = useRouter();
 
   const handleRegister = async () => {
+
+      if (!email || !password) {
+      toast.error("Veuillez remplir tous les champs.");
+      return;
+    }
+
     try {
       await createUserWithEmailAndPassword(auth, email, password);
+      toast.success("Compte créé avec succès 🎉");
       router.push("/dashboard");
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message);
     }
   };
 

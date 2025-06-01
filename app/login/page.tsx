@@ -9,6 +9,7 @@ import { auth } from "../../lib/firebase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 
 
@@ -18,18 +19,24 @@ export default function LoginPage() {
   const router = useRouter();
 
   const handleLogin = async () => {
+
+    if (!email || !password) {
+      toast.warning("Veuillez remplir tous les champs.");
+      return;
+    }
+
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      toast.success("Connexion réussie 🔐");
       router.push("/dashboard");
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     }
   };
 
   return (
-    <div className="p-10 max-w-md mx-auto"> 
-  
-  
+    <div className="p-10 max-w-md mx-auto">
  <div className="w-1/4 mb-4">
          <Link href="/">
           <Button className="w-full max-w-xs bg-gray-600 mb-20">Retour</Button>
