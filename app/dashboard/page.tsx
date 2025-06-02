@@ -3,123 +3,128 @@ import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect , useState  } from "react";
 import SignOut_app from "../../components/Signout_app";
-import { collection, addDoc, query, where, onSnapshot, doc, deleteDoc, updateDoc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
-import NoteCard from "@/components/NoteCard"; // adapter le chemin selon ton projet
-
-
+// import NoteCard from "@/components/NoteCard"; // adapter le chemin selon ton projet
+import EditPostModal from "@/components/EditPostModal";
+import { toast } from "sonner"; // ✅ nouveau hook
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user , loading } = useAuth();
   const router = useRouter();
 
-  const [notes, setNotes] = useState<any[]>([]);
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+  const [posts, setPosts] = useState<any[]>([]);
 
 
-
-
-  useEffect(() => {
-    if (!user) {
-      router.push("/login");
-    }
-  }, [user]);
-
-
+useEffect(() => {
+  if (!loading && !user) {
+    router.push("/login");
+  }
+}, [user, loading]);
 
   // Récupérer les notes en temps réel
   useEffect(() => {
     if (!user) return;
 
-    const q = query(collection(db, "notes"), where("uid", "==", user.uid));
+    const q = query(collection(db, "posts"), where("uid", "==", user.uid));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const notesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setNotes(notesData);
+      const postsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setPosts(postsData);
     });
-
     return () => unsubscribe();
   }, [user]);
 
-
-  const handleAddNote = async () => {
-    if (!title || !content) return;
-
-    await addDoc(collection(db, "notes"), {
-      title,
-      content,
-      uid: user?.uid,
-      createdAt: new Date()
-    });
-
-    setTitle("");
-    setContent("");
+  const handleDeletePost = async (id: string) => {
+    await deleteDoc(doc(db, "posts", id));
   };
 
-  const handleDeleteNote = async (id: string) => {
-    await deleteDoc(doc(db, "notes", id));
-  };
+  const handleUpdatePost = async (id: string, data: any) => {
+  try {
+    await updateDoc(doc(db, "posts", id), data);
+    toast.success("Publication mise à jour avec succès !");
+  } catch (err) {
+    toast.error("La mise à jour a échoué.");
+  }
+};
 
-  const handleUpdateNote = async (id: string) => {
-    const newContent = prompt("Nouveau contenu :");
-    if (newContent) {
-      await updateDoc(doc(db, "notes", id), { content: newContent });
-    }
-  };
+if (loading) return <div>Chargement...</div>;
+if (!user) return null;
 
-
-  if (!user) return null;
-
-  return (
-    <div className="p-10">
-     
-
-      <div className="w-full flex justify-end mb-4">
-        <div className="mb-4">
-         <SignOut_app />
-      </div>
-    </div>
-
-
-      <h1 className="text-4xl font-bold">Bienvenue, {user.email} 👋</h1>
-
-
-        <hr  className="my-8"/>
-       <h1 className="text-3xl font-bold mb-4">Mes notes</h1>
-      <div className="mb-6">
-        <input
-          type="text"
-          placeholder="Titre"
-          className="border p-2 w-full mb-2"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        <textarea
-          placeholder="Contenu"
-          className="border p-2 w-full mb-2"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-        />
-        <button onClick={handleAddNote} className="bg-blue-500 text-white px-4 py-2 rounded">
-          Ajouter la note
-        </button>
+              return (
+      <div className="max-w-screen-xl mx-auto py-16 px-6 xl:px-0">
+      <div className="flex items-end justify-between mb-8">
+        <h2 className="text-3xl font-bold tracking-tight">Mes publications</h2>
+        <SignOut_app />
       </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            {notes.map((note) => (
-              <NoteCard
-                key={note.id}
-                id={note.id}
-                title={note.title}
-                content={note.content}
-                onDelete={handleDeleteNote}
-                onUpdate={async (id, newContent) =>
-                  await updateDoc(doc(db, "notes", id), { content: newContent })
-                }
-              />
-            ))}
-          </div>
+      <div className="flex items-end justify-end mb-8">
+        <Link href="/create"> 
+          <Button>
+            Créer une publication
+          </Button>
+        </Link>
+      </div>
+
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-10">
+        {posts.map((post) => (
+              <Card key={post.id} className="relative overflow-hidden shadow-none border rounded-xl ">
+              <CardHeader className="p-2 relative ">
+                {post.imageUrl ? (
+                  <div className=" relative aspect-video w-full rounded-lg overflow-hidden">
+                    <img
+                      src={post.imageUrl}
+                      alt="Post cover"
+                      className="w-full h-full object-cover"
+                    />              
+                  </div>
+                ) : (
+                  <div className="aspect-video bg-muted rounded-lg w-full" />
+                )}
+              </CardHeader>
+
+              <CardContent className="pt-4 pb-5">
+              <div className="flex items-center justify-between">
+                  <Badge className="capitalize">{post.category}</Badge>
+                  <span className="text-muted-foreground text-sm">
+                    {new Date(post.createdAt?.seconds * 1000).toLocaleDateString()}
+                  </span>
+              </div>
+
+                <h3 className="mt-4 text-[1.35rem] font-semibold tracking-tight line-clamp-2">
+                  {post.title}
+                </h3>
+
+                <div className="mt-6 flex items-center justify-between">
+                 <div className="flex gap-2">
+                      <EditPostModal
+                        id={post.id}
+                        title={post.title}
+                        content={post.content}
+                        imageUrl={post.imageUrl}
+                        category={post.category}
+                        onUpdate={handleUpdatePost}
+                      />
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeletePost(post.id)}
+                      >
+                        Supprimer
+                      </Button>
+                    </div>
+
+                
+                </div>
+              </CardContent>
+            </Card>
+
+        ))}
+      </div>
     </div>
-  );
-}
+              );
+            }

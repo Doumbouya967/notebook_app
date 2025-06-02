@@ -8,7 +8,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner"; // ✅ nouveau hook
-
+import { Input } from "@/components/ui/input";
+import { db } from "../../lib/firebase";
+import { doc, setDoc } from "firebase/firestore";
 
 
 
@@ -16,19 +18,34 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const [name, setName] = useState(""); // 🆕 nouveau champ
+
+
+
+
 
   const handleRegister = async () => {
 
-      if (!email || !password) {
+      if (!email || !password || !name) {
       toast.error("Veuillez remplir tous les champs.");
       return;
     }
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const uid = userCredential.user.uid;     
+      
+       // 🔐 Enregistrer dans Firestore
+      await setDoc(doc(db, "users", uid), {
+        name,
+        email,
+        createdAt: new Date(),
+      });
       toast.success("Compte créé avec succès 🎉");
       router.push("/dashboard");
-    } catch (err) {
+    }
+    catch (err) {
       toast.error(err.message);
     }
   };
@@ -44,21 +61,29 @@ export default function RegisterPage() {
 
 
       <h1 className="text-3xl text-center font-bold mb-4">Créer un compte</h1>
-      <input
+      
+      <Input
+        type="text"
+        placeholder="Nom complet"
+        className="mb-2"
+        onChange={(e) => setName(e.target.value)}
+      />
+
+      <Input
         type="email"
         placeholder="Email"
-        className="border p-2 w-full mb-5"
+        className="border p-2 w-full mb-2"
         onChange={(e) => setEmail(e.target.value)}
       />
-      <input
+      <Input
         type="password"
         placeholder="Mot de passe"
         className="border p-2 w-full mb-2"
         onChange={(e) => setPassword(e.target.value)}
       />
-      <button onClick={handleRegister} className="bg-blue-500 mt-8 text-white px-4 py-2 rounded">
+      <Button onClick={handleRegister} className="bg-blue-500 mt-8 text-white px-4 py-2 rounded">
         S'inscrire
-      </button>
+      </Button>
     </div>
   );
 }
